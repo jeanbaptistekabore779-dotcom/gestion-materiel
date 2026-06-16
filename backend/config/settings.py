@@ -125,3 +125,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'utilisateurs.Utilisateur'
+
+# Pour la configuration de l'API REST avec JWT (JSON Web Tokens) pour l'authentification, nous utilisons le package djangorestframework-simplejwt. 
+# Cela permet de sécuriser les endpoints de l'API en exigeant un token JWT valide pour accéder aux ressources protégées.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
