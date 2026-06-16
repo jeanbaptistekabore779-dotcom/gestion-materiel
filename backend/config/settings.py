@@ -37,6 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Les applications métiers que j'ai créées @Jean Baptiste
+    'materiels',
+    'utilisateurs',
+    'emprunts',
+    'maintenance',
+    'notifications',
+    'rendezvous',
+    'historiques',
 ]
 
 MIDDLEWARE = [
