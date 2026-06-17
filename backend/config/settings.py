@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Les applications métiers que j'ai créées @Jean Baptiste
+    
+    'rest_framework',
     'materiels',
     'utilisateurs',
     'emprunts',

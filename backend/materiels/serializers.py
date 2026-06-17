@@ -7,7 +7,7 @@ class CategorieSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class MaterielSerializer(serializers.ModelSerializer):
-    # Rappel : ce champ reste virtuel, il n'existe pas en BDD, juste dans le JSON pour Flutter
+    # Rappel : ce champ reste virtuel, il n'existe pas en BDD, juste dans le JSON
     categorie_details = CategorieSerializer(source='categorie', read_only=True)
 
     class Meta:

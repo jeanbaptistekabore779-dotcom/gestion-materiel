@@ -1,3 +1,31 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from .models import Categorie, Materiel
+from .serializers import CategorieSerializer, MaterielSerializer
 
-# Create your views here.
+##pour le crud de chaque classe nous avons utilisé Viewset qui gere
+#  automatiquement l'ensemble des crud effectué sur une classe cest a dire
+
+  #  Il utilise les requêtes HTTP (GET, POST, PUT, DELETE) envoyées par le frontend
+   # ou Postman pour manipuler les équipements en base de données.
+
+
+# CONTROLEUR POUR LES CATEGORIES 
+
+class CategorieViewSet(viewsets.ModelViewSet):
+    
+    # 1. Source des données : On indique à Django d'aller chercher toutes les lignes de la table Categorie
+    queryset = Categorie.objects.all()
+    
+    # 2. Traducteur : On lui donne le moule à utiliser pour transformer ces données SQL en JSON (et inversement)
+    serializer_class = CategorieSerializer
+
+
+
+# CONTROLEUR POUR LES MATERIELS 
+class MaterielViewSet(viewsets.ModelViewSet):
+   
+    # 1. Source des données : On indique à Django d'aller chercher tous les matériels enregistrés
+    queryset = Materiel.objects.all()
+    
+    # traducteur des donnee sql en json
+    serializer_class = MaterielSerializer

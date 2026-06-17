@@ -4,6 +4,6 @@ from django.contrib import admin
 
 from .models import Categorie, Materiel
 
-# On enregistre les modèles pour qu'ils soient visibles dans le back-office
+# On enregistre les modèles pour qu'ils soit visible dans la BD
 admin.site.register(Categorie)
 admin.site.register(Materiel)
