@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # Les applications métiers que j'ai créées @Jean Baptiste
     
     'rest_framework',
+    'drf_spectacular',
     'materiels',
     'utilisateurs',
     'emprunts',
@@ -48,6 +49,17 @@ INSTALLED_APPS = [
     'rendezvous',
     'historiques',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API de Gestion Matérielle UJKZ',
+    'DESCRIPTION': 'Documentation interactive des routes de l\'API pour la gestion du matériel',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
