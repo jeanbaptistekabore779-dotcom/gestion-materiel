@@ -41,10 +41,10 @@ class Materiel(models.Model):
 
     def __str__(self):
         if self.etat == 'EMPRUNTE' and self.detenteur_actuel:
-            return f"{self.nom} - Emprunté par {self.detenteur_actuel.username}"
+            return f"{self.libelle} - Emprunté par {self.detenteur_actuel.username}"
         elif self.etat == 'MAINTENANCE':
-            return f"{self.nom} - [EN MAINTENANCE]"
-        return f"{self.nom} - Disponible"
+            return f"{self.libelle} - [EN MAINTENANCE]"
+        return f"{self.libelle} - Disponible"
 
 
 # Create your models here.
