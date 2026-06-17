@@ -12,6 +12,12 @@ urlpatterns = [
     
     # Les modules applicatifs
     
+    #Utilisateurs
     path('api/', include('utilisateurs.urls')),
+    #Emprunts
     path('api/', include('emprunts.urls')),
+    #Materiels
+    path('api/materiels/', include('materiels.urls')),
+    #maintenance
+    #path('api/maintenance/', include('maintenance.urls')),
 ]
