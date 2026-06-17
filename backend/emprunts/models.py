@@ -16,13 +16,13 @@ class Emprunt(models.Model):
         verbose_name="Emprunteur"
     )
     
-    # --- COMMENTÉ TEMPORAIREMENT POUR PERMETTRE LA COMPILATION ---
-    # materiel = models.ForeignKey(
-    #     'materiels.Materiel', 
-    #     on_delete=models.PROTECT, 
-    #     related_name='historique_emprunts',
-    #     verbose_name="Matériel emprunté"
-    # )
+    # 🌟 RELATION CORRIGÉE ET ACTIVÉE :
+    materiel = models.ForeignKey(
+        'materiels.Materiel', 
+        on_delete=models.PROTECT, 
+        related_name='historique_emprunts',
+        verbose_name="Matériel emprunté"
+    )
     
     date_sortie = models.DateTimeField(auto_now_add=True)
     date_retour_prevue = models.DateTimeField(verbose_name="Date de retour prévue")
@@ -37,5 +37,5 @@ class Emprunt(models.Model):
         ordering = ['-date_sortie']
 
     def __str__(self):
-        # Modification temporaire de l'affichage pour éviter l'erreur
-        return f"Emprunt par {self.utilisateur.nom} {self.utilisateur.prenom}"
+        # 🌟 On peut maintenant afficher le matériel dans le libellé !
+        return f"{self.materiel.designation} emprunté par {self.utilisateur.nom} {self.utilisateur.prenom}"
