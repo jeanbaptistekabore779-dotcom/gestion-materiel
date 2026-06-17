@@ -15,6 +15,9 @@ class UtilisateurSerializer(serializers.ModelSerializer):
             'nom', 
             'prenom', 
             'telephone', 
+            'matricule',       # Nouveau champ
+            'departement',     # Nouveau champ
+            'photo_profil',    # Nouveau champ
             'type_piece', 
             'numero_piece', 
             'role',
@@ -36,6 +39,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             'nom', 
             'prenom', 
             'telephone', 
+            'matricule',       # Nouveau champ
+            'departement',     # Nouveau champ
+            'photo_profil',    # Nouveau champ
             'type_piece', 
             'numero_piece', 
             'role'
@@ -50,6 +56,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             nom=validated_data.get('nom', ''),
             prenom=validated_data.get('prenom', ''),
             telephone=validated_data.get('telephone', ''),
+            matricule=validated_data.get('matricule', None),        # Ajouté ici
+            departement=validated_data.get('departement', ''),      # Ajouté ici
+            photo_profil=validated_data.get('photo_profil', None),  # Ajouté ici
             type_piece=validated_data.get('type_piece', 'CNIB'),
             numero_piece=validated_data.get('numero_piece', ''),
             role=validated_data.get('role', 'ETUDIANT')

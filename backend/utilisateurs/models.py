@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-## La classe Utilisateur hérite de AbstractUser pour bénéficier des fonctionnalités d'authentification de Django tout en ajoutant des champs personnalisés spécifiques à notre application.
 class Utilisateur(AbstractUser):
 
     ROLE_CHOICES = [
@@ -18,7 +17,6 @@ class Utilisateur(AbstractUser):
 
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
-
     telephone = models.CharField(max_length=20)
 
     type_piece = models.CharField(
@@ -36,6 +34,11 @@ class Utilisateur(AbstractUser):
         choices=ROLE_CHOICES,
         default='ETUDIANT'
     )
+
+    # 🌟 NOUVEAUX CHAMPS AJOUTÉS ICI
+    matricule = models.CharField(max_length=30, unique=True, null=True, blank=True)
+    departement = models.CharField(max_length=100, blank=True, default='')
+    photo_profil = models.ImageField(upload_to='profils/', null=True, blank=True)
 
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
