@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from .models import Categorie, Materiel
 from .serializers import CategorieSerializer, MaterielSerializer
+from historiques.utils import enregistrer_historique
 
 ##pour le crud de chaque classe nous avons utilisé Viewset qui gere
 #  automatiquement l'ensemble des crud effectué sur une classe cest a dire
@@ -29,3 +30,33 @@ class MaterielViewSet(viewsets.ModelViewSet):
     
     # traducteur des donnee sql en json
     serializer_class = MaterielSerializer
+
+    def perform_create(self, serializer):
+        # On sauvegarde le matériel
+        instance = serializer.save()
+        # On enregistre l'historique
+        enregistrer_historique(
+            self.request.user, 
+            'CREATION', 
+            f"Matériel '{instance.libelle}' créé."
+        )
+
+    def perform_update(self, serializer):
+        # On sauvegarde les modifications
+        instance = serializer.save()
+        # On enregistre l'historique
+        enregistrer_historique(
+            self.request.user, 
+            'MODIFICATION', 
+            f"Matériel '{instance.libelle}' modifié."
+        )
+
+    def perform_destroy(self, instance):
+        # On garde une trace avant de supprimer
+        libelle = instance.libelle
+        instance.delete()
+        enregistrer_historique(
+            self.request.user, 
+            'SUPPRESSION', 
+            f"Matériel '{libelle}' supprimé."
+        )

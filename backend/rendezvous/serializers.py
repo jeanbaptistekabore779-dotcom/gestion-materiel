@@ -6,3 +6,5 @@ class RendezVousSerializer(serializers.ModelSerializer):
         model = RendezVous
        
         fields = ['id', 'date_heure', 'type_rdv', 'statut', 'administrateur']
+
+        
