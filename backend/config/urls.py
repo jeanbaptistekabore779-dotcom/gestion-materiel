@@ -9,7 +9,8 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
-    # Les modules applicatifs
+    # Les modules applicatifs fusionnés
     path('api/', include('utilisateurs.urls')),
     path('api/', include('emprunts.urls')),
+    path('api/', include('notifications.urls')),  # Ajout de l'application notifications
 ]

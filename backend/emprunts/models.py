@@ -16,14 +16,15 @@ class Emprunt(models.Model):
         verbose_name="Emprunteur"
     )
     
-    # --- COMMENTÉ TEMPORAIREMENT POUR PERMETTRE LA COMPILATION ---
-    # materiel = models.ForeignKey(
-    #     'materiels.Materiel', 
-    #     on_delete=models.PROTECT, 
-    #     related_name='historique_emprunts',
-    #     verbose_name="Matériel emprunté"
-    # )
-    
+ # 🌟 RELATION CORRIGÉE ET ACTIVÉE (AVEC LA VIRGULE) :
+    materiel = models.ForeignKey(
+        'materiels.Materiel', 
+        on_delete=models.PROTECT, 
+        related_name='historique_emprunts',
+        verbose_name="Matériel emprunté",  
+        null=True,   # Permet d'Autorise Django à laisser ce champ vide en base de données
+        blank=True
+    )
     date_sortie = models.DateTimeField(auto_now_add=True)
     date_retour_prevue = models.DateTimeField(verbose_name="Date de retour prévue")
     date_retour_effective = models.DateTimeField(null=True, blank=True, verbose_name="Date de retour réelle")
@@ -37,5 +38,5 @@ class Emprunt(models.Model):
         ordering = ['-date_sortie']
 
     def __str__(self):
-        # Modification temporaire de l'affichage pour éviter l'erreur
-        return f"Emprunt par {self.utilisateur.nom} {self.utilisateur.prenom}"
+        designation_materiel = self.materiel.designation if self.materiel else "Matériel inconnu"
+        return f"{designation_materiel} emprunté par {self.utilisateur.nom} {self.utilisateur.prenom}"

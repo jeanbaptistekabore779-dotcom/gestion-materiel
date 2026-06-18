@@ -1,3 +1,8 @@
-from django.shortcuts import render
+from rest_framework import viewsets, permissions
+from .models import Materiel
+from .serializers import MaterielSerializer
 
-# Create your views here.
+class MaterielViewSet(viewsets.ModelViewSet):
+    queryset = Materiel.objects.all()
+    serializer_class = MaterielSerializer
+    permission_classes = [permissions.IsAuthenticated]

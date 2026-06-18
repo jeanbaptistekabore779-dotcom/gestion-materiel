@@ -8,15 +8,15 @@ class EmpruntSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Emprunt
-        fields = [
-            'id', 
-            'utilisateur', 
-            'utilisateur_details', 
-            'materiel', 
-            'date_sortie', 
-            'date_retour_prevue', 
-            'date_retour_effective', 
-            'statut', 
-            'observations'
-        ]
-        read_only_fields = ['date_sortie', 'date_retour_effective', 'statut']
+    fields = [
+        'id', 
+        'utilisateur', 
+        'utilisateur_details', 
+        'materiel',  
+        'date_sortie', 
+        'date_retour_prevue', 
+        'date_retour_effective', 
+        'statut', 
+        'observations'
+    ]
+    read_only_fields = ['date_sortie', 'date_retour_effective', 'statut']
