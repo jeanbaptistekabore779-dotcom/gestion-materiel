@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Les applications métiers que j'ai créées @Jean Baptiste
     
+    
     'rest_framework',
     'materiels',
     'utilisateurs',
@@ -47,7 +48,12 @@ INSTALLED_APPS = [
     'notifications',
     'rendezvous',
     'historiques',
+    'drf_spectacular',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
