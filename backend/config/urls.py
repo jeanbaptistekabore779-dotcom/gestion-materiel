@@ -18,6 +18,6 @@ urlpatterns = [
     path('api/', include('emprunts.urls')),
     #Materiels
     path('api/materiels/', include('materiels.urls')),
-    #maintenance
-    #path('api/maintenance/', include('maintenance.urls')),
+    #notifications
+    path('api/notifications/', include('notifications.urls')),
 ]
