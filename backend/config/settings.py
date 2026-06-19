@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'notifications',
     'rendezvous',
     'historiques',
+    #API Documentation
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -121,11 +123,39 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-#  Configuration globale de Django REST Framework & Simple JWT
+#  Configuration globale de Django REST Framework
 REST_FRAMEWORK = {
+    # Déclare le générateur de schéma OpenAPI (Swagger)
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    
+    # Déclare la méthode d'authentification par défaut de votre API
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+}
+
+#  Configuration de drf-spectacular (Swagger UI)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API Gestion-Matériel',
+    'DESCRIPTION': 'Documentation interactive des API du système de gestion et traçabilité des matériels pédagogiques.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    
+    # Intégration propre du bouton "Authorize" (Cadenas) dans Swagger pour le token JWT
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SECURITY': [{
+        'jwtAuth': [],
+    }],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'jwtAuth': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'Authorization',
+                'description': 'Entrez votre token JWT sous la forme : Bearer <votre_token_ici>'
+            }
+        }
+    }
 }
 
 #  Autorisation des requêtes cross-origin en développement (React/Flutter)
