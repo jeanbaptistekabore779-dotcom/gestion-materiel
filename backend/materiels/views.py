@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 from rest_framework import viewsets, permissions
 from .models import Materiel
 from .serializers import MaterielSerializer
@@ -7,7 +7,7 @@ class MaterielViewSet(viewsets.ModelViewSet):
     queryset = Materiel.objects.all()
     serializer_class = MaterielSerializer
     permission_classes = [permissions.IsAuthenticated]
-=======
+
 from rest_framework import viewsets
 from .models import Categorie, Materiel
 from .serializers import CategorieSerializer, MaterielSerializer
@@ -70,4 +70,4 @@ class MaterielViewSet(viewsets.ModelViewSet):
             'SUPPRESSION', 
             f"Matériel '{libelle}' supprimé."
         )
->>>>>>> origin/Ma-Partie-De-Gestion
+
