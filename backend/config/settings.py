@@ -25,12 +25,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+<<<<<<< HEAD
     
     # --- LES EXTENSIONS TIERS À RAJOUTER ICI ---
     'rest_framework',
     'rest_framework_simplejwt',
     
     # Les applications métiers créées
+=======
+    # Les applications métiers que j'ai créées @Jean Baptiste
+    
+    
+    'rest_framework',
+>>>>>>> origin/Ma-Partie-De-Gestion
     'materiels',
     'utilisateurs',
     'emprunts',
@@ -38,7 +45,12 @@ INSTALLED_APPS = [
     'notifications',
     'rendezvous',
     'historiques',
+    'drf_spectacular',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
