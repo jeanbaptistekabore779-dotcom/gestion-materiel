@@ -1,5 +1,7 @@
 from pathlib import Path
+import os
 
+DEBUG = os.getenv("DEBUG", "False") == "True"
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -158,3 +160,5 @@ SPECTACULAR_SETTINGS = {
 
 # Autorisation des requêtes cross-origin (React/Flutter)
 CORS_ALLOW_ALL_ORIGINS = True
+
+ALLOWED_HOSTS = ["*"]
