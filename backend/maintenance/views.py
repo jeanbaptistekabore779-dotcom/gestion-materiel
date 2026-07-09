@@ -1,47 +1,97 @@
-from rest_framework import viewsets
-from maintenance.models import Maintenance
-from .models import CategorieMaintenance
-from .serializers import MaintenanceSerializer, CategorieMaintenanceSerializer
-from maintenance.serializers import MaintenanceSerializer
+# maintenance/views.py
+from rest_framework import viewsets, permissions
+from .models import CategorieMaintenance, Maintenance
+from .serializers import CategorieMaintenanceSerializer, MaintenanceSerializer
 from historiques.utils import enregistrer_historique
+from notifications.models import Notification
+
 
 class CategorieMaintenanceViewSet(viewsets.ModelViewSet):
     queryset = CategorieMaintenance.objects.all()
     serializer_class = CategorieMaintenanceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
 class MaintenanceViewSet(viewsets.ModelViewSet):
-    # 1. Source des données
     queryset = Maintenance.objects.all()
-    # 2. Sérialiseur associé
     serializer_class = MaintenanceSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        # Sauvegarde de l'instance
         instance = serializer.save()
-        # Enregistrement de l'historique
+
+        # Mettre le matériel EN_PANNE automatiquement
+        if instance.materiel:
+            instance.materiel.statut = 'EN_PANNE'
+            instance.materiel.etat = 'EN_MAINTENANCE'
+            instance.materiel.save()
+
+        # ✅ Notifier le technicien assigné à la création
+        if instance.technicien:
+            Notification.objects.create(
+                destinataire=instance.technicien,
+                message=f"Nouvelle intervention assignée : {instance.materiel.designation if instance.materiel else 'matériel inconnu'}.",
+                typeNotification='ALERTE',
+            )
+
         enregistrer_historique(
-            self.request.user, 
-            'MAINTENANCE', 
-            f"Déclaration de maintenance pour {instance.materiel.libelle}"
+            self.request.user,
+            'MAINTENANCE',
+            f"Déclaration de maintenance pour {instance.materiel.designation if instance.materiel else 'matériel inconnu'}"
         )
 
     def perform_update(self, serializer):
-        # Sauvegarde des modifications
+        # On récupère l'ancien technicien AVANT la sauvegarde pour détecter un changement d'assignation
+        ancien_technicien_id = None
+        if serializer.instance:
+            ancien_technicien_id = serializer.instance.technicien_id
+
         instance = serializer.save()
-        # Enregistrement de l'historique
+
+        # Si la maintenance est TERMINEE → remettre le matériel DISPONIBLE
+        if instance.statut == 'TERMINE' and instance.materiel:
+            instance.materiel.statut = 'DISPONIBLE'
+            instance.materiel.etat = 'DISPONIBLE'
+            instance.materiel.save()
+
+        # Si ANNULE → remettre DISPONIBLE aussi
+        if instance.statut == 'ANNULE' and instance.materiel:
+            instance.materiel.statut = 'DISPONIBLE'
+            instance.materiel.etat = 'DISPONIBLE'
+            instance.materiel.save()
+
+        # ✅ Notifier le technicien si un nouveau technicien vient d'être assigné
+        if instance.technicien and instance.technicien_id != ancien_technicien_id:
+            Notification.objects.create(
+                destinataire=instance.technicien,
+                message=f"Intervention assignée : {instance.materiel.designation if instance.materiel else 'matériel inconnu'}.",
+                typeNotification='ALERTE',
+            )
+
+        # ✅ Notifier le technicien si le statut de sa maintenance change (ex: terminé/annulé par un admin)
+        if instance.technicien and instance.technicien_id == ancien_technicien_id and instance.statut in ('TERMINE', 'ANNULE'):
+            Notification.objects.create(
+                destinataire=instance.technicien,
+                message=f"L'intervention sur {instance.materiel.designation if instance.materiel else 'matériel inconnu'} est marquée : {instance.get_statut_display()}.",
+                typeNotification='INFO',
+            )
+
         enregistrer_historique(
-            self.request.user, 
-            'MODIFICATION', 
-            f"Mise à jour maintenance ID {instance.id}"
+            self.request.user,
+            'MODIFICATION',
+            f"Mise à jour maintenance ID {instance.id} → {instance.statut}"
         )
 
     def perform_destroy(self, instance):
-        # On récupère l'info avant suppression
         id_maintenance = instance.id
-        # Suppression
+        # Remettre le matériel disponible si on supprime la maintenance
+        if instance.materiel:
+            instance.materiel.statut = 'DISPONIBLE'
+            instance.materiel.etat = 'DISPONIBLE'
+            instance.materiel.save()
         instance.delete()
-        # Enregistrement de l'historique
         enregistrer_historique(
-            self.request.user, 
-            'SUPPRESSION', 
+            self.request.user,
+            'SUPPRESSION',
             f"Maintenance ID {id_maintenance} supprimée"
         )

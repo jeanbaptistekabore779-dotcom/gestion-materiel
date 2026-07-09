@@ -1,10 +1,10 @@
 // src/api/maintenance.js
-import apiClient from './client';
+import api from './api';
 
 export const maintenanceAPI = {
-  getAll: () => apiClient.get('/maintenance/maintenances/'),
-  getById: (id) => apiClient.get(`/maintenance/maintenances/${id}/`),
-  create: (data) => apiClient.post('/maintenance/maintenances/', data),
-  update: (id, data) => apiClient.put(`/maintenance/maintenances/${id}/`, data),
-  delete: (id) => apiClient.delete(`/maintenance/maintenances/${id}/`),
+  getAll:   ()         => api.get('maintenance/'),
+  getById:  (id)       => api.get(`maintenance/${id}/`),
+  create:   (data)     => api.post('maintenance/', data),
+  update:   (id, data) => api.put(`maintenance/${id}/`, data),
+  delete:   (id)       => api.delete(`maintenance/${id}/`),
 };

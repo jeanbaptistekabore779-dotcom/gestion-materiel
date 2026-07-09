@@ -3,7 +3,6 @@ from .models import Emprunt
 from utilisateurs.serializers import UtilisateurSerializer
 
 class EmpruntSerializer(serializers.ModelSerializer):
-    # Permet d'embarquer les détails complets de l'utilisateur qui emprunte lors d'un GET
     utilisateur_details = UtilisateurSerializer(source='utilisateur', read_only=True)
     
     class Meta:
@@ -19,4 +18,9 @@ class EmpruntSerializer(serializers.ModelSerializer):
             'statut', 
             'observations'
         ]
-        read_only_fields = ['date_sortie', 'date_retour_effective', 'statut']
+        read_only_fields = [
+            'date_sortie',
+            'date_retour_effective',
+            'statut',
+            'utilisateur',        # ← ajouter — assigné automatiquement par perform_create
+        ]

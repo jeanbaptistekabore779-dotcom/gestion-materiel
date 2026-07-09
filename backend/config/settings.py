@@ -1,20 +1,16 @@
 from pathlib import Path
 import os
+from datetime import timedelta
+
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-*eto@2(9u=dgs%1=5@+d7+vkik#49(_7!_mmp4-wk853o55d=n'
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']  # Autorise toutes les connexions (pratique pour tester avec le mobile)
-
-
-# Application definition
+ALLOWED_HOSTS = ['*']  
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -122,7 +118,7 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'utilisateurs.Utilisateur'
 
 
-# 🛠️ Configuration globale unifiée de Django REST Framework
+# Configuration globale unifiée de Django REST Framework
 REST_FRAMEWORK = {
     # Déclare le générateur de schéma OpenAPI (Swagger)
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -162,3 +158,16 @@ SPECTACULAR_SETTINGS = {
 CORS_ALLOW_ALL_ORIGINS = True
 
 ALLOWED_HOSTS = ["*"]
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'TOKEN_OBTAIN_SERIALIZER': 'utilisateurs.serializers.CustomTokenObtainPairSerializer',
+}
+
+# Fichiers médias (photos uploadées)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
+

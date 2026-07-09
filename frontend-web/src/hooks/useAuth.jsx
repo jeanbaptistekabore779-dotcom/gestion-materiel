@@ -1,75 +1,55 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
- 
+
 const AuthContext = createContext(null);
- 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth doit être utilisé dans un AuthProvider');
-  return context;
-};
- 
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
- 
-  // Restaurer la session au démarrage
+
+  // Au chargement de l'application, on récupère l'utilisateur s'il existe dans le localStorage
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      try { setUser(JSON.parse(savedUser)); }
-      catch { localStorage.clear(); }
+  let isMounted = true;
+  const fetchNotifs = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return; // ← ne pas appeler si pas de token
+    try {
+      const res = await api.get('notifications/');
+      if (!isMounted) return;
+      const data = res.data?.results || res.data || [];
+      const nonLues = Array.isArray(data)
+        ? data.filter(n => !n.lu && !n.read && !n.is_read).length
+        : 0;
+      setNotifCount(nonLues);
+    } catch {
+      if (isMounted) setNotifCount(0);
     }
-    setLoading(false);
-  }, []);
- 
-  /**
-   * login() — deux usages :
-   *  1. Appelé par Login.jsx après Django : on lit le user déjà sauvegardé dans localStorage
-   *  2. Appelé avec (role, type) pour la démo rapide (portail)
-   */
-  const login = (role, typePrecision = '') => {
-    // Si Login.jsx a déjà sauvegardé le vrai user, on l'utilise
-    const saved = localStorage.getItem('user');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // S'assurer que le rôle correspond (sécurité)
-        if (parsed.role) {
-          setUser(parsed);
-          return;
-        }
-      } catch { /* ignore */ }
-    }
- 
-    // Fallback : création d'un user de démo (portail)
-    const userData = {
-      role,
-      type: typePrecision,
-      nom: '',
-      prenom: typePrecision || role.charAt(0) + role.slice(1).toLowerCase(),
-    };
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
   };
- 
+  if (user) fetchNotifs(); // ← déjà conditionnel, mais le token peut manquer
+  return () => { isMounted = false; };
+}, [user]);
+
   const logout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
     setUser(null);
-    localStorage.clear();
   };
- 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <div className="text-slate-400 text-sm">Chargement...</div>
-      </div>
-    );
-  }
- 
+
+  // On déduit dynamiquement isAuthenticated pour éviter d'avoir à gérer un troisième useState
+  const isAuthenticated = !!user;
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, setUser, loading, setLoading, isAuthenticated, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
- 
-export default useAuth;
+
+// Hook personnalisé pour consommer le contexte
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth doit être utilisé dans un AuthProvider');
+  }
+  return context;
+};

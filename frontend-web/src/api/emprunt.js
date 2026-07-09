@@ -1,12 +1,11 @@
-import apiClient from './client';
+// src/api/emprunt.js
+import api from './api';
 
 export const empruntAPI = {
-  // Liste des emprunts
-  getAll: () => apiClient.get('/emprunts/emprunts/'),
-  
-  // Créer un emprunt
-  create: (data) => apiClient.post('/emprunts/emprunts/', data),
-  
-  // Retourner un matériel
-  retour: (id) => apiClient.put(`/emprunts/emprunts/${id}/retour/`),
+  getAll:   ()         => api.get('emprunts/'),
+  getById:  (id)       => api.get(`emprunts/${id}/`),
+  create:   (data)     => api.post('emprunts/', data),
+  valider:  (id, data) => api.post(`emprunts/${id}/valider/`, data),
+  refuser:  (id, data) => api.post(`emprunts/${id}/refuser/`, data),
+  retourner:(id, data) => api.post(`emprunts/${id}/retourner/`, data),
 };

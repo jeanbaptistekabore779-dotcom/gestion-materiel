@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-# La classe Utilisateur hérite de AbstractUser pour bénéficier des fonctionnalités 
+
+# La classe Utilisateur hérite de AbstractUser pour bénéficier des fonctionnalités
 # d'authentification de Django tout en ajoutant des champs personnalisés spécifiques à notre application.
 class Utilisateur(AbstractUser):
 
@@ -15,6 +16,12 @@ class Utilisateur(AbstractUser):
     TYPE_PIECE_CHOICES = [
         ('CNIB', 'CNIB'),
         ('PASSEPORT', 'Passeport'),
+    ]
+
+    STATUT_CHOICES = [
+        ('ACTIF', 'Actif'),
+        ('SUSPENDU', 'Suspendu'),
+        ('SIGNALE', 'Signalé'),
     ]
 
     nom = models.CharField(max_length=100)
@@ -35,6 +42,13 @@ class Utilisateur(AbstractUser):
         max_length=20,
         choices=ROLE_CHOICES,
         default='ETUDIANT'
+    )
+
+    statut = models.CharField(
+        max_length=10,
+        choices=STATUT_CHOICES,
+        default='ACTIF',
+        help_text="Utilisé pour la suspension ou le signalement d'un compte."
     )
 
     # Nouveaux champs pour enrichir le profil de l'utilisateur

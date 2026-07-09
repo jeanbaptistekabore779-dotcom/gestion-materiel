@@ -90,7 +90,7 @@ const MaterielList = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{materiel.emplacement_physique || '—'}</div>
+                    <div className="text-sm text-gray-500">{materiel.emplacement_physique || ''}</div>
                   </td>
                 </tr>
               ))

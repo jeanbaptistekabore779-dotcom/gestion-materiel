@@ -1,281 +1,335 @@
 // src/views/admin/DashboardAdmin.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import Layout from '../../components/Layout';
+import DashboardCard from '../../components/DashboardCard';
+import { useAuth } from '../../hooks/useAuth';
+import api from '../../api/api';
 
-/* ========================================================================== */
-/* 1. COMPOSANTS D'ICÔNES SVG EXACTES (SANS LIBRAIRIE EXTERNE)                */
-/* ========================================================================== */
-function LogoCapIcon({ className }) {
+// Vues admin
+import Materiels     from './Materiels';
+import Utilisateurs  from './Utilisateurs';
+import Logs          from './Logs';
+import RendezVous    from './RendezVous';
+import Emprunts      from './Emprunts';
+import Maintenances  from './Maintenances';
+import Notifications from './Notifications';
+
+// ─── Icônes ──────────────────────────────────────────────────────
+const Icons = {
+  Box:      (p) => <svg className={p.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>,
+  Check:    (p) => <svg className={p.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+  Book:     (p) => <svg className={p.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+  Wrench:   (p) => <svg className={p.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>,
+  Users:    (p) => <svg className={p.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  Clock:    (p) => <svg className={p.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  Arrow:    (p) => <svg className={p.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+  Alert:    (p) => <svg className={p.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+};
+
+// ─── Mini barre de progression ────────────────────────────────────
+function ProgressBar({ value, max, color = 'bg-blue-500' }) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-    </svg>
-  )
-}
-
-function BellIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
-  )
-}
-
-function ChevronDownIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  )
-}
-
-function CatalogueIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" />
-      <rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" />
-    </svg>
-  )
-}
-
-function EmpruntsIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 3h5v5M4 20L20 4M20 20H4M8 4H4v4" />
-    </svg>
-  )
-}
-
-function CalendarIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  )
-}
-
-function SearchIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  )
-}
-
-function SlidersIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
-      <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
-      <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
-      <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
-    </svg>
-  )
-}
-
-function MaintenanceIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-    </svg>
-  )
-}
-
-function UsersIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  )
-}
-
-function HistoryIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-}
-
-
-/* ========================================================================== */
-/* 2. COMPOSANT GENERAL DU DASHBOARD ADMIN                                    */
-/* ========================================================================== */
-export default function DashboardAdmin({ role, onLogout }) {
-  const [activeTab, setActiveTab] = useState('Catalogue');
-
-  return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans antialiased text-slate-800">
-      
-      {/* TOP NAVBAR INSTITUTIONNELLE BLEUE */}
-      <header className="bg-[#1A3673] text-white h-16 px-6 flex items-center justify-between shadow-sm z-50 sticky top-0">
-        <div className="flex items-center gap-3">
-          <div className="bg-white/10 p-2 rounded-xl">
-            <LogoCapIcon className="h-6 w-6 text-amber-400" />
-          </div>
-          <div>
-            <h1 className="font-bold text-base leading-none tracking-wide">Gestion-Matériel</h1>
-            <p className="text-[11px] text-blue-200/80 font-light mt-1">Portail de gestion du matériel universitaire</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-6">
-          {/* Icône Cloche Notification */}
-          <div className="relative cursor-pointer">
-            <BellIcon className="h-5 w-5 text-blue-100" />
-            <span className="absolute -top-1 -right-1 bg-amber-500 text-[9px] font-bold text-slate-900 h-3.5 w-3.5 flex items-center justify-center rounded-full">
-              3
-            </span>
-          </div>
-
-          <div className="h-6 w-[1px] bg-blue-800" />
-
-          {/* Profil Utilisateur avec vraie photo */}
-          <div className="flex items-center gap-3">
-            <img 
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" 
-              alt="Profil" 
-              className="h-9 w-9 rounded-full object-cover border border-white/20 shadow-sm"
-            />
-            <div className="text-left hidden sm:block">
-              <p className="text-xs font-semibold leading-tight">Jean Baptiste Kaboré</p>
-              <p className="text-[10px] text-blue-200 mt-0.5">
-                <span className="text-amber-400 font-medium">Admin</span> · Génie Informatique · M-203398
-              </p>
-            </div>
-            <ChevronDownIcon className="h-3.5 w-3.5 text-blue-300" />
-          </div>
-        </div>
-      </header>
-
-      {/* PANNEAU DE NAVIGATION & CONTENU */}
-      <div className="flex flex-1 h-[calc(100vh-4rem)] overflow-hidden">
-        
-        {/* SIDEBAR GAUCHE BLANCHE */}
-        <aside className="w-64 bg-white border-r border-slate-200 flex flex-col py-6 px-4 shrink-0 select-none justify-between">
-          <div className="space-y-6">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 tracking-wider mb-3 px-3 uppercase">APPLICATIONS</p>
-              <nav className="space-y-1">
-                <SidebarLink label="Catalogue" active={activeTab === 'Catalogue'} onClick={() => setActiveTab('Catalogue')} icon={<CatalogueIcon className="h-5 w-5" />} />
-                <SidebarLink label="Emprunts" active={activeTab === 'Emprunts'} onClick={() => setActiveTab('Emprunts')} badge="5" icon={<EmpruntsIcon className="h-5 w-5" />} />
-                <SidebarLink label="Rendez-vous" active={activeTab === 'Rendez-vous'} onClick={() => setActiveTab('Rendez-vous')} icon={<CalendarIcon className="h-5 w-5" />} />
-                <SidebarLink label="Pannes & Maintenance" active={activeTab === 'Maintenance'} onClick={() => setActiveTab('Maintenance')} badge="3" icon={<MaintenanceIcon className="h-5 w-5" />} />
-                <SidebarLink label="Historique & Logs" active={activeTab === 'Logs'} onClick={() => setActiveTab('Logs')} icon={<HistoryIcon className="h-5 w-5" />} />
-              </nav>
-            </div>
-
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 tracking-wider mb-3 px-3 uppercase">ADMINISTRATION</p>
-              <nav className="space-y-1">
-                <SidebarLink label="Utilisateurs" active={activeTab === 'Utilisateurs'} onClick={() => setActiveTab('Utilisateurs')} icon={<UsersIcon className="h-5 w-5" />} />
-                <SidebarLink label="Notifications" active={activeTab === 'Notifications'} onClick={() => setActiveTab('Notifications')} icon={<BellIcon className="h-5 w-5" />} />
-              </nav>
-            </div>
-          </div>
-
-          {/* Déconnexion */}
-          <div className="pt-4 border-t border-slate-100">
-            <button 
-              onClick={onLogout}
-              className="w-full text-left text-sm font-semibold text-red-600 hover:bg-red-50 p-2 rounded-xl transition-colors"
-            >
-              Déconnexion
-            </button>
-          </div>
-        </aside>
-
-        {/* ESPACE DE TRAVAIL PRINCIPAL DROIT */}
-        <main className="flex-1 overflow-y-auto bg-[#F8FAFC] px-8 py-8">
-          <div className="max-w-5xl mx-auto space-y-6">
-            
-            {/* Titre dynamique */}
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Tableau de bord du matériel</h2>
-              <p className="text-sm text-slate-400 mt-1">Gerez le catalogue, les emprunts, la maintenance et l'historique en un seul endroit.</p>
-            </div>
-
-            {/* Grille des 4 Blocs Compteurs */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard title="Matériels disponibles" value="142" icon={<CatalogueIcon className="h-6 w-6" />} bgIcon="bg-blue-50 text-blue-700" />
-              <StatCard title="Emprunts actifs" value="37" icon={<EmpruntsIcon className="h-5 w-5" />} bgIcon="bg-indigo-50 text-indigo-600" />
-              <StatCard title="En attente de validation" value="5" icon={<CalendarIcon className="h-5 w-5" />} bgIcon="bg-amber-50 text-amber-700" highlight />
-              <StatCard title="En maintenance" value="3" icon={<MaintenanceIcon className="h-5 w-5" />} bgIcon="bg-orange-50 text-orange-700" />
-            </div>
-
-            {/* Barre de Recherche + Boutons actions */}
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1">
-                <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Rechercher un matériel, une référence..."
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-12 pr-4 text-sm outline-none focus:border-blue-700 shadow-sm transition-colors"
-                />
-              </div>
-              <button className="inline-flex h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
-                <SlidersIcon className="h-4 w-4 text-slate-500" />
-                <span>Filtres</span>
-              </button>
-              <button className="inline-flex h-12 items-center gap-2 rounded-xl bg-[#1E40AF] px-5 text-sm font-medium text-white hover:bg-blue-800 shadow-sm transition-colors">
-                <span className="text-lg leading-none">+</span>
-                <span>Ajouter</span>
-              </button>
-            </div>
-
-            {/* Pilules de Sélections */}
-            <div className="flex flex-wrap gap-2">
-              <button className="rounded-full px-5 py-1.5 text-sm font-medium bg-[#1E40AF] text-white shadow-sm">Tous</button>
-              <button className="rounded-full px-5 py-1.5 text-sm font-medium bg-white text-slate-500 border border-slate-200 hover:bg-slate-50">Informatique</button>
-              <button className="rounded-full px-5 py-1.5 text-sm font-medium bg-white text-slate-500 border border-slate-200 hover:bg-slate-50">Audiovisuel</button>
-              <button className="rounded-full px-5 py-1.5 text-sm font-medium bg-white text-slate-500 border border-slate-200 hover:bg-slate-50">Laboratoire</button>
-            </div>
-
-            {/* Zone d'affichage des cartes ou tableaux */}
-            <div className="bg-white rounded-3xl border border-slate-200/60 p-8 text-center shadow-sm">
-              <p className="text-sm text-slate-400">Section en cours de liaison avec l'onglet : <strong className="text-slate-700">{activeTab}</strong></p>
-            </div>
-
-          </div>
-        </main>
-      </div>
+    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+      <div className={`h-1.5 rounded-full transition-all duration-700 ${color}`} style={{ width: `${pct}%` }} />
     </div>
-  )
-}
-
-/* ========================================================================== */
-/* 3. SOUS-COMPOSANTS LOGIQUES                                                */
-/* ========================================================================== */
-function SidebarLink({ label, active, onClick, badge, icon }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-        active ? "bg-[#1E40AF] text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        {icon}
-        <span>{label}</span>
-      </div>
-      {badge && (
-        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${active ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700'}`}>
-          {badge}
-        </span>
-      )}
-    </button>
   );
 }
 
-function StatCard({ title, value, icon, bgIcon, highlight }) {
+// ─── Ligne d'activité récente ─────────────────────────────────────
+function ActivityRow({ icon: Icon, label, sub, badge, badgeColor, time }) {
+  const colors = {
+    emerald: 'bg-emerald-50 text-emerald-700',
+    amber:   'bg-amber-50 text-amber-700',
+    rose:    'bg-rose-50 text-rose-600',
+    blue:    'bg-blue-50 text-blue-700',
+    slate:   'bg-slate-100 text-slate-500',
+  };
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-slate-200/60 bg-white p-5 shadow-sm">
-      <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${bgIcon}`}>
-        {icon}
-      </span>
-      <div>
-        <p className={`text-3xl font-bold tracking-tight ${highlight ? 'text-amber-600' : 'text-slate-800'}`}>{value}</p>
-        <p className="text-xs text-slate-400 font-medium mt-0.5 leading-tight">{title}</p>
+    <div className="flex items-center gap-3 py-2.5 border-b border-slate-50 last:border-0">
+      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+        <Icon className="h-4 w-4 text-slate-500" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-slate-700 truncate">{label}</p>
+        {sub && <p className="text-xs text-slate-400 truncate">{sub}</p>}
+      </div>
+      <div className="flex flex-col items-end gap-1 shrink-0">
+        {badge && (
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${colors[badgeColor] || colors.slate}`}>
+            {badge}
+          </span>
+        )}
+        {time && <span className="text-[10px] text-slate-300">{time}</span>}
       </div>
     </div>
+  );
+}
+
+// ─── Page d'accueil Admin ─────────────────────────────────────────
+function AdminHome({ stats, emprunts, loading }) {
+  const navigate = useNavigate();
+
+  const quickActions = [
+    { label: 'Ajouter un matériel',    sub: 'Enregistrer un équipement',      path: '/admin/materiels',    icon: Icons.Box,    color: 'bg-blue-50 text-blue-700' },
+    { label: 'Gérer les emprunts',     sub: 'Valider ou refuser les demandes', path: '/admin/emprunts',     icon: Icons.Book,   color: 'bg-indigo-50 text-indigo-700' },
+    { label: 'Gérer les utilisateurs', sub: 'Comptes étudiants & enseignants', path: '/admin/users',        icon: Icons.Users,  color: 'bg-purple-50 text-purple-700' },
+    { label: 'Voir les maintenances',  sub: 'Suivi des interventions',         path: '/admin/maintenances', icon: Icons.Wrench, color: 'bg-orange-50 text-orange-700' },
+  ];
+
+  // Calcul du taux de disponibilité (sur la base des UNITÉS, pas des fiches)
+  const tauxDispo = stats.total > 0 ? Math.round((stats.disponibles / stats.total) * 100) : 0;
+
+  return (
+    <div className="space-y-6">
+
+      {/* En-tête */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Tableau de bord</h2>
+          <p className="text-sm text-slate-400 mt-0.5">
+            Vue d'ensemble du parc matériel de l'UFR/SEA — UJKZ
+          </p>
+        </div>
+        <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full font-medium">
+          {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </span>
+      </div>
+
+      {/* ── Cartes stats ─────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <DashboardCard
+          title="Unités totales"
+          value={stats.total}
+          icon={Icons.Box}
+          color="blue"
+          subtitle={`${stats.disponibles} disponibles`}
+          loading={loading}
+          onClick={() => navigate('/admin/materiels')}
+        />
+        <DashboardCard
+          title="Disponibles"
+          value={stats.disponibles}
+          icon={Icons.Check}
+          color="emerald"
+          subtitle={`${tauxDispo}% du parc`}
+          loading={loading}
+          onClick={() => navigate('/admin/materiels')}
+        />
+        <DashboardCard
+          title="En cours"
+          value={stats.enCours}
+          icon={Icons.Book}
+          color="indigo"
+          subtitle="unités physiquement sorties"
+          loading={loading}
+          onClick={() => navigate('/admin/emprunts')}
+        />
+        <DashboardCard
+          title="À traiter"
+          value={stats.aTraiter}
+          icon={Icons.Clock}
+          color="amber"
+          subtitle="demandes, retraits ou retours"
+          loading={loading}
+          onClick={() => navigate('/admin/emprunts')}
+        />
+        <DashboardCard
+          title="En maintenance"
+          value={stats.maintenance}
+          icon={Icons.Wrench}
+          color="orange"
+          subtitle="fiches en panne"
+          loading={loading}
+          onClick={() => navigate('/admin/maintenances')}
+        />
+      </div>
+
+      {/* ── Ligne 2 : Disponibilité + Activité récente ───────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        {/* Répartition du parc */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <h3 className="text-sm font-bold text-slate-700">Répartition du parc</h3>
+          {loading ? (
+            <div className="space-y-3">
+              {[1,2,3].map(i => <div key={i} className="h-8 bg-slate-100 rounded-lg animate-pulse" />)}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="text-slate-500 font-medium">Disponibles</span>
+                  <span className="text-emerald-600 font-bold">{stats.disponibles} / {stats.total}</span>
+                </div>
+                <ProgressBar value={stats.disponibles} max={stats.total} color="bg-emerald-500" />
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="text-slate-500 font-medium">Unités empruntées</span>
+                  <span className="text-blue-600 font-bold">{stats.total - stats.disponibles} / {stats.total}</span>
+                </div>
+                <ProgressBar value={stats.total - stats.disponibles} max={stats.total} color="bg-blue-500" />
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="text-slate-500 font-medium">En maintenance</span>
+                  <span className="text-orange-600 font-bold">{stats.maintenance}</span>
+                </div>
+                <ProgressBar value={stats.maintenance} max={Math.max(stats.maintenance, 1)} color="bg-orange-500" />
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="text-slate-500 font-medium">Utilisateurs</span>
+                  <span className="text-purple-600 font-bold">{stats.utilisateurs}</span>
+                </div>
+                <ProgressBar value={stats.utilisateurs} max={Math.max(stats.utilisateurs, 10)} color="bg-purple-500" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Emprunts récents */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-bold text-slate-700">Emprunts récents</h3>
+            <button
+              onClick={() => navigate('/admin/emprunts')}
+              className="text-xs text-[#0C326F] font-semibold hover:underline flex items-center gap-1"
+            >
+              Voir tout <Icons.Arrow className="h-3 w-3" />
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="space-y-3">
+              {[1,2,3,4].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}
+            </div>
+          ) : emprunts.length === 0 ? (
+            <div className="text-center py-8 text-slate-300 text-sm">Aucun emprunt enregistré</div>
+          ) : (
+            <div>
+              {emprunts.slice(0, 5).map((e) => {
+                const nom = e.materiel_nom ?? e.materiel?.designation ?? `Matériel #${e.materiel}`;
+                const demandeur = e.utilisateur_details
+                  ? `${e.utilisateur_details.prenom ?? ''} ${e.utilisateur_details.nom ?? ''}`.trim() || e.utilisateur_details.username
+                  : `Utilisateur #${e.utilisateur}`;
+                const statutColors = {
+                  EN_ATTENTE: 'amber', APPROUVE: 'blue', EN_COURS: 'emerald',
+                  RETOURNE: 'slate', REFUSE: 'rose', EN_RETARD: 'rose',
+                };
+                const statutLabels = {
+                  EN_ATTENTE: 'En attente', APPROUVE: 'Approuvé', EN_COURS: 'En cours',
+                  RETOURNE: 'Retourné', REFUSE: 'Refusé', EN_RETARD: 'En retard',
+                };
+                return (
+                  <ActivityRow
+                    key={e.id}
+                    icon={Icons.Book}
+                    label={nom}
+                    sub={demandeur}
+                    badge={statutLabels[e.statut] ?? e.statut}
+                    badgeColor={statutColors[e.statut] ?? 'slate'}
+                    time={e.date_sortie ? new Date(e.date_sortie).toLocaleDateString('fr-FR') : ''}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Actions rapides ───────────────────────────────────── */}
+      <div>
+        <h3 className="text-sm font-bold text-slate-700 mb-3">Actions rapides</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {quickActions.map((a) => (
+            <button
+              key={a.path}
+              onClick={() => navigate(a.path)}
+              className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:shadow-md hover:-translate-y-0.5 text-left transition-all duration-150 group"
+            >
+              <div className={`p-2.5 rounded-xl shrink-0 ${a.color}`}>
+                <a.icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-700 truncate">{a.label}</div>
+                <div className="text-[11px] text-slate-400 truncate">{a.sub}</div>
+              </div>
+              <Icons.Arrow className="h-3.5 w-3.5 text-slate-300 group-hover:text-slate-500 shrink-0 ml-auto transition-colors" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+// ─── Composant Principal ──────────────────────────────────────────
+export default function DashboardAdmin({ onLogout }) {
+  const { user } = useAuth();
+  const [stats, setStats]     = useState({ total: 0, disponibles: 0, aTraiter: 0, enCours: 0, maintenance: 0, utilisateurs: 0 });
+  const [emprunts, setEmprunts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetch = async () => {
+      try {
+        const [matRes, empRes, userRes] = await Promise.all([
+          api.get('materiels/'),
+          api.get('emprunts/'),
+          api.get('utilisateurs/').catch(() => ({ data: [] })),
+        ]);
+        if (!mounted) return;
+
+        const mats  = Array.isArray(matRes.data)  ? matRes.data  : matRes.data?.results  ?? [];
+        const emps  = Array.isArray(empRes.data)  ? empRes.data  : empRes.data?.results  ?? [];
+        const users = Array.isArray(userRes.data) ? userRes.data : userRes.data?.results ?? [];
+
+        // Total et disponibles = SOMME des quantités (unités), pas un
+        // comptage de fiches. Une fiche "Capteur" (quantite=5) et une
+        // fiche "Drone" (quantite=2) donnent bien 7 unités totales,
+        // pas 2.
+        setStats({
+          total:       mats.reduce((sum, m) => sum + (m.quantite ?? 0), 0),
+          disponibles: mats.reduce((sum, m) => sum + (m.quantite_disponible ?? 0), 0),
+          // "À traiter" = dossiers qui demandent une action admin (demande non
+          // encore validée, ou retrait/retour physique à confirmer).
+          // "En cours" = unités RÉELLEMENT sorties du stock à cet instant.
+          // On sépare ces deux notions pour ne pas laisser croire qu'un
+          // dossier "en attente" correspond à du matériel physiquement dehors.
+          aTraiter: emps.filter(e => ['EN_ATTENTE', 'APPROUVE', 'RETOUR_DECLARE'].includes(e.statut)).length,
+          enCours:  emps.filter(e => ['EN_COURS', 'EN_RETARD'].includes(e.statut)).length,
+          maintenance: mats.filter(m => m.statut === 'EN_PANNE').length,
+          utilisateurs: users.length,
+        });
+        setEmprunts(emps);
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetch();
+    return () => { mounted = false; };
+  }, []);
+
+  return (
+    <Layout onLogout={onLogout} role="ADMIN">
+      <Routes>
+        <Route index                element={<AdminHome stats={stats} emprunts={emprunts} loading={loading} />} />
+        <Route path="dashboard"     element={<AdminHome stats={stats} emprunts={emprunts} loading={loading} />} />
+        <Route path="materiels"     element={<Materiels />} />
+        <Route path="users"         element={<Utilisateurs />} />
+        <Route path="emprunts"      element={<Emprunts />} />
+        <Route path="maintenances"  element={<Maintenances />} />
+        <Route path="rendez-vous"   element={<RendezVous />} />
+        <Route path="notifications" element={<Notifications />} />
+        <Route path="logs"          element={<Logs />} />
+      </Routes>
+    </Layout>
   );
 }

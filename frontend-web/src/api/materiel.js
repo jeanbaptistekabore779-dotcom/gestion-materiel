@@ -1,18 +1,10 @@
-import apiClient from './client';
+// src/api/materiel.js
+import api from './api';
 
 export const materielAPI = {
-  // Liste des matériels
-  getAll: () => apiClient.get('/materiels/materiels/'),
-  
-  // Détails d'un matériel
-  getById: (id) => apiClient.get(`/materiels/materiels/${id}/`),
-  
-  // Ajouter
-  create: (data) => apiClient.post('/materiels/materiels/', data),
-  
-  // Modifier
-  update: (id, data) => apiClient.put(`/materiels/materiels/${id}/`, data),
-  
-  // Supprimer
-  delete: (id) => apiClient.delete(`/materiels/materiels/${id}/`),
+  getAll:   ()         => api.get('materiels/'),
+  getById:  (id)       => api.get(`materiels/${id}/`),
+  create:   (data)     => api.post('materiels/', data),
+  update:   (id, data) => api.put(`materiels/${id}/`, data),
+  delete:   (id)       => api.delete(`materiels/${id}/`),
 };

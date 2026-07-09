@@ -1,34 +1,57 @@
-from django.shortcuts import render
-from django.db import models
+# rendezvous/views.py
 from rest_framework import viewsets, permissions
-from .models import RendezVous
-from .serializers import RendezVousSerializer
+from rest_framework.exceptions import PermissionDenied
 
-class RendezVousViewSet(viewsets.ModelViewSet):
-    
-    queryset = RendezVous.objects.all()
+from .models import Disponibilite, RendezVous
+from .serializers import DisponibiliteSerializer, RendezVousSerializer
+from historiques.utils import enregistrer_historique
+
+
+def est_admin(user):
+    return user.is_staff or getattr(user, 'role', '') in ['ADMIN', 'TECHNICIEN']
+
+
+class DisponibiliteViewSet(viewsets.ModelViewSet):
+    """CRUD des créneaux hebdomadaires — réservé aux administrateurs."""
+    queryset = Disponibilite.objects.all()
+    serializer_class = DisponibiliteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        if not est_admin(self.request.user):
+            raise PermissionDenied("Seul un administrateur peut configurer les créneaux.")
+        creneau = serializer.save()
+        enregistrer_historique(
+            self.request.user,
+            'CREATION',
+            f'Créneau ajouté : {creneau.get_jour_semaine_display()} {creneau.heure_debut}–{creneau.heure_fin} ({creneau.lieu}).',
+        )
+
+    def perform_update(self, serializer):
+        if not est_admin(self.request.user):
+            raise PermissionDenied("Seul un administrateur peut modifier les créneaux.")
+        creneau = serializer.save()
+        enregistrer_historique(
+            self.request.user,
+            'MODIFICATION',
+            f'Créneau modifié : {creneau.get_jour_semaine_display()} {creneau.heure_debut}–{creneau.heure_fin} ({creneau.lieu}).',
+        )
+
+    def perform_destroy(self, instance):
+        if not est_admin(self.request.user):
+            raise PermissionDenied("Seul un administrateur peut supprimer un créneau.")
+        description = f'Créneau supprimé : {instance.get_jour_semaine_display()} {instance.heure_debut}–{instance.heure_fin}.'
+        instance.delete()
+        enregistrer_historique(self.request.user, 'SUPPRESSION', description)
+
+
+class RendezVousViewSet(viewsets.ReadOnlyModelViewSet):
+    """Lecture des rendez-vous. Les admins voient tout, les étudiants voient les leurs."""
     serializer_class = RendezVousSerializer
-    # Sécurité : Seul un utilisateur connecté peut interagir avec cette API
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        
-        # Si c'est un membre de l'administration (staff), il voit tous les rendez-vous
-        if user.is_staff:
+        if est_admin(user):
             return RendezVous.objects.all()
-        
-        # Si c'est un bénéficiaire (étudiant ou enseignant), il ne voit que SES rendez-vous
-        # On filtre en fonction des deux colonnes de la table Emprunt
-        return RendezVous.objects.filter(
-            models.Q(emprunt__etudiant=user) | models.Q(emprunt__enseignant=user)
-        ).distinct()
-
-    def perform_create(self, serializer):
-        # Quand l'administration crée un rendez-vous, le système enregistre automatiquement 
-        # quel administrateur connecté a fixé ce créneau.
-        if self.request.user.is_staff:
-            serializer.save(administrateur=self.request.user)
-        else:
-            serializer.save()
-# Create your views here.
+        return RendezVous.objects.filter(beneficiaire=user)
